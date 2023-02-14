@@ -1,0 +1,19 @@
+version: "3.7"
+
+services:
+  covid_assessment:
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile
+    container_name: covidAssessment
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/home/working
+      - ./data:/home/working/data
+      - ./resources:/home/working/resources
+      - ./output:/home/working/output
+      - ./logs:/home/working/logs
+    env_file:
+      - .env
+    command: python main.py

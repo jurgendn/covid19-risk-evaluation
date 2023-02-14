@@ -1,0 +1,29 @@
+timeRange:
+  startDate: 01/01/2019
+  endDate: 06/01/2019
+  timeDelta: null
+
+level:
+  commune:
+    graphPath: ./resources/original_data.plk.gz
+    outputPath: ./output/commune
+    maxIteration: 1000
+    walkLength: 20
+    epochs: 4
+    levelName: commune
+
+  province:
+    graphPath: ./resources/province_data.plk.gz
+    outputPath: ./output/province
+    maxIteration: 500
+    walkLength: 5
+    epochs: 3
+    levelName: province
+
+  specificLocation:
+    graphPath: ./resources/specific_location_data.plk.gz
+    outputPath: ./output/specific_location
+    maxIteration: 500
+    walkLength: 5
+    epochs: 3
+    levelName: specific_location

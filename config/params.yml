@@ -1,0 +1,6 @@
+riskModel:
+  graph_path: "data/graphs/2019-01-01.graphml"
+  max_iteration: 1000
+  walk_length: 20
+  batch_size: 32
+  duration_threshold: 7
