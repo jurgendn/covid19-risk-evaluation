@@ -128,6 +128,71 @@ Each level section (`COMMUNE`, `PROVINCE`, `HANOI`) provides:
 
 The random-walk model loads it in `src/walk_model.py`.
 
+#### Important: expected transition tensor semantics
+
+The random walk samples the next node using a CDF-style row representation:
+
+- `proba_matrix` should be a float tensor with shape `(N, N+1)`.
+- Each row `cdf[i]` is a non-decreasing cumulative distribution over destination node ids `0..N-1`.
+- Convention used by the sampler:
+  - `cdf[i, 0] == 0.0`
+  - `cdf[i, -1] == 1.0`
+  - For a uniform random `u ~ U(0,1)`, the next node is the first index `k` such that `cdf[i, k] >= u`, then mapped to node id `k-1`.
+
+If your natural representation is a probability matrix `P` of shape `(N, N)` where each row sums to 1, you can convert it to the expected CDF form via:
+
+`cdf = concat([0], cumsum(P, axis=1))`.
+
+#### Location key conventions
+
+The `loc2id` key type must match the configured level:
+
+- `LEVEL_NAME = commune`: keys are 3-tuples `(Xã/Phường, Quận/Huyện, Tỉnh/TP)`
+- `LEVEL_NAME = province`: keys are strings `Tỉnh/TP`
+
+These keys must match what appears in the patient Excel input.
+
+#### Minimal example: create a tiny graph file
+
+This snippet creates a 3-node toy graph and writes `toy_graph.pkl.gz`:
+
+```python
+import gzip
+import pickle
+
+import numpy as np
+import torch
+
+N = 3
+
+# Example node labels (for commune-level you can use tuples)
+id2loc = {
+	0: "A",
+	1: "B",
+	2: "C",
+}
+loc2id = {v: k for k, v in id2loc.items()}
+
+# Example transition probabilities P (rows sum to 1)
+P = np.array(
+	[
+		[0.0, 1.0, 0.0],
+		[0.5, 0.0, 0.5],
+		[0.0, 1.0, 0.0],
+	],
+	dtype=np.float32,
+)
+
+# Convert to the expected CDF representation (N, N+1)
+cdf = np.concatenate([np.zeros((N, 1), dtype=np.float32), np.cumsum(P, axis=1)], axis=1)
+cdf[:, -1] = 1.0  # enforce exact 1.0 at the end
+
+proba_matrix = torch.tensor(cdf, dtype=torch.float32)
+
+with gzip.open("toy_graph.pkl.gz", "wb") as f:
+	pickle.dump((id2loc, loc2id, proba_matrix), f)
+```
+
 ### 2) Patients file (`*.xlsx`)
 
 By default (`Learner.get_patients(..., input_type='full')`) the code expects a “long” table with columns:
@@ -139,6 +204,76 @@ By default (`Learner.get_patients(..., input_type='full')`) the code expects a �
 - `Tỉnh/TP`
 
 The `src/initial_parameters.py` loader filters patients by recency (the last `duration_threshold` days).
+
+## Sample input / output
+
+This section shows minimal examples of the **expected schemas**.
+
+### Sample patient input (long format — recommended)
+
+This is the format consumed by default when running `python main.py`.
+
+File: `./data/patients.xlsx`
+
+Columns:
+
+- `Ngày công bố` (string, `dd/mm/YYYY`)
+- `MCB` (patient id; any unique-ish integer/string)
+- `Xã/Phường`
+- `Quận/Huyện`
+- `Tỉnh/TP`
+
+Example rows:
+
+| Ngày công bố | MCB | Xã/Phường | Quận/Huyện | Tỉnh/TP |
+|---|---:|---|---|---|
+| 01/07/2021 | 10001 | Phúc Xá | Ba Đình | Hà Nội |
+| 02/07/2021 | 10002 | Bình Hưng | Bình Chánh | Hồ Chí Minh |
+| 02/07/2021 | 10003 | Bình Hưng | Bình Chánh | Hồ Chí Minh |
+
+Notes:
+
+- The code selects patients within the last `duration_threshold` days of each simulated date.
+- Locations must match the keys in the graph’s `loc2id` mapping (same spelling/normalization).
+
+### Optional patient input (wide daily-count workbook)
+
+If your data is aggregated as **counts per day per location** (dates are columns), you can convert it to the long format.
+
+Example (one row per location, values are daily counts):
+
+| Tỉnh/TP | Quận/Huyện | Xã/Phường | 01/07/2021 | 02/07/2021 |
+|---|---|---|---:|---:|
+| Hồ Chí Minh | Bình Chánh | Bình Hưng | 0 | 3 |
+| Hà Nội | Ba Đình | Phúc Xá | 1 | 0 |
+
+Conversion helper:
+
+- `utils/helpers/input_converter.py` expands each count into that many “patient” rows and writes an Excel in the long format.
+
+### Sample output (risk Excel)
+
+Outputs are written to the configured `OUTPUT_PATH`.
+
+For each simulated day and each `epoch`, the code writes:
+
+- `{OUTPUT_PATH}/{DD_MM_YYYY}_{epoch}.xlsx`
+
+Schema:
+
+- `Location`: node label (from `id2loc`)
+- `<date>`: risk score for that date (scaled proportion per 10,000 visits)
+
+Example (illustrative):
+
+| Location | 02/07/2021 |
+|---|---:|
+| Bình Hưng, Bình Chánh, Hồ Chí Minh | 132.7 |
+| Phúc Xá, Ba Đình, Hà Nội | 45.1 |
+
+Interpretation:
+
+- Higher values mean the random-walk simulation visited that region more frequently, given the recent patient set and the transition probabilities in the graph.
 
 #### Converting a “wide” daily-count workbook
 
