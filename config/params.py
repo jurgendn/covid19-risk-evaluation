@@ -24,17 +24,17 @@ class COMMUNE:
 @dataclass
 class PROVINCE:
     GRAPH_PATH = "./resources/province_data.pkl.gz"
-    OUTPUT_PATH = "./resources/province_data.pkl.gz"
+    OUTPUT_PATH = "output/province"
     MAX_ITERATION = 1000
     WALK_LENGTH = 20
     EPOCHS = 4
-    LEVEL_NAME = "commune"
+    LEVEL_NAME = "province"
 
 
 @dataclass
 class HANOI:
     GRAPH_PATH = "./resources/province_data.pkl.gz"
-    OUTPUT_PATH = "./resources/province_data.pkl.gz"
+    OUTPUT_PATH = "output/Hanoi"
     MAX_ITERATION = 1000
     WALK_LENGTH = 20
     EPOCHS = 4

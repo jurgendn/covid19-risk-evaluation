@@ -10,25 +10,37 @@ learner = Learner(graph_path=cfg.COMMUNE.GRAPH_PATH,
 
 
 def remove_contents(path):
+    os.makedirs(path, exist_ok=True)
     file_lists = os.listdir(path)
     if file_lists is not None:
         for f in file_lists:
-            os.remove(f"{path}/{f}", )
+            fp = os.path.join(path, f)
+            if os.path.isfile(fp):
+                os.remove(fp)
     return True
 
 
-def main():
-    if cfg.RUNNER.START_DATE is None:
-        assert cfg.RUNNER.TIME_DELTA is not None
-        start_date = datetime.today().strftime("%d/%m/%Y")
-        end_date = (start_date +
-                    timedelta(days=cfg.RUNNER.TIME_DELTA)).strftime("%d/%m/%Y")
-        start_date = start_date.strftime("%d/%m/%Y")
+def compute_date_range():
+    start_raw = cfg.RUNNER.START_DATE
+    if start_raw:
+        start_dt = datetime.strptime(start_raw, "%d/%m/%Y")
     else:
-        start_date = datetime.strptime(cfg.RUNNER.START_DATE, "%d/%m/%Y")
-        end_date = (start_date +
-                    timedelta(days=cfg.RUNNER.TIME_DELTA)).strftime("%d/%m/%Y")
-        start_date = start_date.strftime("%d/%m/%Y")
+        start_dt = datetime.today()
+
+    if cfg.RUNNER.TIME_DELTA is not None:
+        end_dt = start_dt + timedelta(days=int(cfg.RUNNER.TIME_DELTA))
+    else:
+        end_raw = getattr(cfg.RUNNER, "END_DATE", None)
+        if not end_raw:
+            raise ValueError(
+                "Either RUNNER.TIME_DELTA or RUNNER.END_DATE must be set")
+        end_dt = datetime.strptime(end_raw, "%d/%m/%Y")
+
+    return start_dt.strftime("%d/%m/%Y"), end_dt.strftime("%d/%m/%Y")
+
+
+def main():
+    start_date, end_date = compute_date_range()
 
     mode = cfg.RUNNER.MODE
 
@@ -53,6 +65,10 @@ def main():
         walk_length = cfg.HANOI.WALK_LENGTH
         epochs = cfg.HANOI.EPOCHS
         level = cfg.HANOI.LEVEL_NAME
+    else:
+        raise ValueError(
+            f"Invalid RUNNER.MODE: {mode}. Expected one of: commune, province, Hanoi"
+        )
 
     torch.cuda.empty_cache()
     remove_contents(output_path)
