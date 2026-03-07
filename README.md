@@ -3,9 +3,11 @@
 [![Python](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white)](#requirements)
 [![PyTorch](https://img.shields.io/badge/PyTorch-used-EE4C2C?logo=pytorch&logoColor=white)](#requirements)
 [![Status](https://img.shields.io/badge/status-research%20code-6c757d)](#)
-[![Thesis PDF](https://img.shields.io/badge/thesis-PDF-0F9D58?logo=googledrive&logoColor=white)](https://drive.google.com/drive/folders/1ky5EILc2VWQid6d6A8Ez2H7MnODomx6J?usp=sharing)
-[![Thesis PDF - English](https://img.shields.io/badge/thesis-PDF-en-0F9D58?logo=googledrive&logoColor=white)](https://drive.google.com/file/d/1VQl_iTkP2uwHm1d_90zPOdgP1nDTBx7K/view?usp=sharing)
-[![Thesis PDF - Vietnamese](https://img.shields.io/badge/thesis-PDF-vi-0F9D58?logo=googledrive&logoColor=white)](https://drive.google.com/file/d/1yhuCP41ezmRUjhP2NvTANgm9kOBTl2LM/view?usp=sharing)
+[![Thesis Folder](https://img.shields.io/badge/thesis-folder-0F9D58?logo=googledrive&logoColor=white)](https://drive.google.com/drive/folders/1ky5EILc2VWQid6d6A8Ez2H7MnODomx6J?usp=sharing)
+[![Thesis (English)](https://img.shields.io/badge/thesis-en-0F9D58?logo=googledrive&logoColor=white)](https://drive.google.com/file/d/1VQl_iTkP2uwHm1d_90zPOdgP1nDTBx7K/view?usp=sharing)
+[![Thesis (Vietnamese)](https://img.shields.io/badge/thesis-vi-0F9D58?logo=googledrive&logoColor=white)](https://drive.google.com/file/d/1yhuCP41ezmRUjhP2NvTANgm9kOBTl2LM/view?usp=sharing)
+
+Thesis PDFs (English & Vietnamese) and the source folder — click the badges above to open.
 
 Network / random-walk based COVID-19 risk evaluation for Vietnam (research code).
 
